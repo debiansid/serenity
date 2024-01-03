@@ -79,7 +79,7 @@ signs:
   - artifacts: checksum
 release:
   github:
-    owner: ruau
+    owner: debiansid
     name: serenity
   draft: true
   mode: replace
