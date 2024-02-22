@@ -8,7 +8,7 @@ import (
 )
 
 func (t *Template) renderGeoResources(metadata M.Metadata, options *option.Options) {
-	if t.DisableRuleSet || (metadata.Version == nil || metadata.Version.LessThan(semver.ParseVersion("1.8.0-alpha.10"))) {
+	if t.DisableRuleSet || (metadata.Version != nil && metadata.Version.LessThan(semver.ParseVersion("1.8.0-alpha.10"))) {
 		var (
 			geoipDownloadURL   string
 			geositeDownloadURL string
@@ -68,19 +68,10 @@ func (t *Template) renderGeoResources(metadata M.Metadata, options *option.Optio
 			},
 			{
 				Type:   C.RuleSetTypeRemote,
-				Tag:    "geosite-cn",
+				Tag:    "geosite-geolocation-cn",
 				Format: C.RuleSetFormatBinary,
 				RemoteOptions: option.RemoteRuleSet{
-					URL:            downloadURL + "SagerNet/sing-geosite" + branchSplit + "rule-set/geosite-cn.srs",
-					DownloadDetour: downloadDetour,
-				},
-			},
-			{
-				Type:   C.RuleSetTypeRemote,
-				Tag:    "geosite-geolocation-!cn",
-				Format: C.RuleSetFormatBinary,
-				RemoteOptions: option.RemoteRuleSet{
-					URL:            downloadURL + "SagerNet/sing-geosite" + branchSplit + "rule-set/geosite-geolocation-!cn.srs",
+					URL:            downloadURL + "SagerNet/sing-geosite" + branchSplit + "rule-set/geosite-geolocation-cn.srs",
 					DownloadDetour: downloadDetour,
 				},
 			},

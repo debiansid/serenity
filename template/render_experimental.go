@@ -13,7 +13,7 @@ func (t *Template) renderExperimental(metadata M.Metadata, options *option.Optio
 		return nil
 	}
 	options.Experimental = &option.ExperimentalOptions{}
-	disable18Features := metadata.Version == nil || metadata.Version.LessThan(semver.ParseVersion("1.8.0-alpha.10"))
+	disable18Features := metadata.Version != nil && metadata.Version.LessThan(semver.ParseVersion("1.8.0-alpha.10"))
 	if !t.DisableCacheFile {
 		if disable18Features {
 			//nolint:staticcheck
@@ -30,6 +30,9 @@ func (t *Template) renderExperimental(metadata M.Metadata, options *option.Optio
 				CacheID:     profileName,
 				StoreFakeIP: t.EnableFakeIP,
 			}
+			if !t.DisableDNSLeak && (metadata.Version != nil && metadata.Version.GreaterThanOrEqual(semver.ParseVersion("1.9.0-alpha.8"))) {
+				options.Experimental.CacheFile.StoreRDRC = true
+			}
 		}
 	}
 
@@ -39,15 +42,24 @@ func (t *Template) renderExperimental(metadata M.Metadata, options *option.Optio
 			return err
 		}
 		options.Experimental.ClashAPI = newClashOptions
-	} else {
-		if options.Experimental.ClashAPI == nil {
-			options.Experimental.ClashAPI = &option.ClashAPIOptions{}
-		}
+	} else if options.Experimental.ClashAPI == nil {
+		options.Experimental.ClashAPI = &option.ClashAPIOptions{}
+	}
+
+	if !t.DisableExternalController && options.Experimental.ClashAPI.ExternalController == "" {
 		options.Experimental.ClashAPI.ExternalController = "127.0.0.1:9090"
 	}
 
 	if !t.DisableClashMode {
-		options.Experimental.ClashAPI.DefaultMode = t.ClashModeRule
+		if !t.DisableDNSLeak && (metadata.Version != nil && metadata.Version.GreaterThanOrEqual(semver.ParseVersion("1.9.0-alpha.1"))) {
+			clashModeLeak := t.ClashModeLeak
+			if clashModeLeak == "" {
+				clashModeLeak = "Leak"
+			}
+			options.Experimental.ClashAPI.DefaultMode = clashModeLeak
+		} else {
+			options.Experimental.ClashAPI.DefaultMode = t.ClashModeRule
+		}
 	}
 	if t.PProfListen != "" {
 		if options.Experimental.Debug == nil {
